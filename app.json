@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Stem",
-    "slug": "stem-ghana-education",
+    "slug": "stem",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -27,7 +27,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1C1221"
       },
-      "package": "com.stem.ghanaEducation"
+      "package": "com.stem.ghanaEducation",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -38,7 +41,10 @@
     "jsEngine": "hermes",
     "extra": {
       "supabaseUrl": "https://vmrwfbkahlsjetgqhoof.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtcndmYmthaGxzamV0Z3Fob29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjA4NTgsImV4cCI6MjA2OTM5Njg1OH0.eQo38v334Xjo-2AhTUT8Av5s36onWKlV-02xwC1IzFg"
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtcndmYmthaGxzamV0Z3Fob29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjA4NTgsImV4cCI6MjA2OTM5Njg1OH0.eQo38v334Xjo-2AhTUT8Av5s36onWKlV-02xwC1IzFg",
+      "eas": {
+        "projectId": "1c0a93c0-9aca-4332-bd4f-c9362c4e88e9"
+      }
     },
     "plugins": [
       "expo-secure-store",
@@ -48,6 +54,7 @@
           "photosPermission": "The app accesses your photos to let you share them."
         }
       ]
-    ]
+    ],
+    "owner": "strange_r"
   }
 }
