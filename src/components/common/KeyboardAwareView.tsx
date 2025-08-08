@@ -1,5 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
+<<<<<<< HEAD
 import { View, Keyboard, Platform, ViewStyle, Animated, Dimensions } from 'react-native';
+=======
+import { Keyboard, Platform, ViewStyle, Animated, Dimensions } from 'react-native';
+>>>>>>> df85f11 (main)
 
 interface KeyboardAwareViewProps {
   children: React.ReactNode;
@@ -71,7 +75,11 @@ export const KeyboardAwareView: React.FC<KeyboardAwareViewProps> = ({
   return (
     <Animated.View
       style={[
+<<<<<<< HEAD
         style,
+=======
+        style as any,
+>>>>>>> df85f11 (main)
         {
           paddingBottom: Platform.OS === 'ios' ? animatedHeight : keyboardHeight,
         },

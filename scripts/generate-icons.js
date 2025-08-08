@@ -9,20 +9,51 @@
 
 const fs = require('fs');
 const path = require('path');
+<<<<<<< HEAD
+=======
+let sizeOf;
+let sharp;
+>>>>>>> df85f11 (main)
 
 const ASSETS_DIR = path.join(__dirname, '..', 'assets');
 const REQUIRED_ICONS = {
   'icon.png': { size: 1024, description: 'Main app icon (1024x1024)' },
+<<<<<<< HEAD
   'adaptive-icon.png': { size: 1024, description: 'Android adaptive icon foreground (1024x1024)' },
   'splash-icon.png': { size: 1024, description: 'Splash screen icon (1024x1024)' },
   'favicon.png': { size: 32, description: 'Web favicon (32x32)' }
 };
 
+=======
+  'adaptive-icon.png': { size: 1024, description: 'Android adaptive icon foreground (1024x1024 with transparency)' },
+  'splash-icon.png': { size: 1024, description: 'Splash screen logo (1024x1024, used with contain)' },
+  'favicon.png': { size: 32, description: 'Web favicon (32x32)' }
+};
+
+const isFixMode = process.argv.includes('--fix');
+
+function ensureDepsLoaded() {
+  try {
+    sizeOf = require('image-size');
+  } catch (e) {
+    console.log('ℹ️  Optional dependency "image-size" not found. Install with: npm i -D image-size');
+  }
+  try {
+    sharp = require('sharp');
+  } catch (e) {
+    if (isFixMode) {
+      console.log('ℹ️  Optional dependency "sharp" not found. Install with: npm i -D sharp');
+    }
+  }
+}
+
+>>>>>>> df85f11 (main)
 function checkIconExists(iconPath) {
   return fs.existsSync(iconPath);
 }
 
 function getImageDimensions(imagePath) {
+<<<<<<< HEAD
   // This is a basic check - in a real implementation, you'd use a library like 'image-size'
   try {
     const stats = fs.statSync(imagePath);
@@ -33,6 +64,41 @@ function getImageDimensions(imagePath) {
 }
 
 function validateIcons() {
+=======
+  if (!fs.existsSync(imagePath)) {
+    return { exists: false };
+  }
+  if (sizeOf) {
+    try {
+      const { width, height, type } = sizeOf(imagePath);
+      return { exists: true, width, height, type };
+    } catch (e) {
+      return { exists: true };
+    }
+  }
+  // Fallback: exists but unknown dims
+  return { exists: true };
+}
+
+async function resizeIfNeeded(iconName, iconPath, current, requiredSize) {
+  if (!isFixMode) return false;
+  if (!sharp) return false;
+  try {
+    await sharp(iconPath)
+      .resize(requiredSize, requiredSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toFile(iconPath + '.tmp');
+    fs.renameSync(iconPath + '.tmp', iconPath);
+    console.log(`🔧 Fixed size: ${iconName} → ${requiredSize}x${requiredSize}`);
+    return true;
+  } catch (e) {
+    console.log(`⚠️  Failed to auto-fix ${iconName}:`, e.message);
+    return false;
+  }
+}
+
+async function validateIcons() {
+>>>>>>> df85f11 (main)
   console.log('🔍 Validating app icons...\n');
   
   let allValid = true;
@@ -46,8 +112,25 @@ function validateIcons() {
       console.log(`   Required: ${requirements.description}`);
       allValid = false;
     } else {
+<<<<<<< HEAD
       console.log(`✅ Found: ${iconName}`);
       console.log(`   ${requirements.description}`);
+=======
+      const dims = iconInfo.width && iconInfo.height ? `${iconInfo.width}x${iconInfo.height}` : 'unknown size';
+      const hasExactSize = iconInfo.width === requirements.size && iconInfo.height === requirements.size;
+      if (hasExactSize) {
+        console.log(`✅ ${iconName} (${dims})`);
+      } else {
+        console.log(`⚠️  ${iconName} (${dims})`);
+        console.log(`   Expected: ${requirements.size}x${requirements.size}. ${requirements.description}`);
+        allValid = false;
+        const fixed = await resizeIfNeeded(iconName, iconPath, iconInfo, requirements.size);
+        if (fixed) {
+          // After fixing, mark as valid for summary
+          allValid = allValid && true;
+        }
+      }
+>>>>>>> df85f11 (main)
     }
   }
   
@@ -58,6 +141,12 @@ function validateIcons() {
     console.log('- Main icon.png should be 1024x1024 pixels');
     console.log('- Adaptive icon should have transparent background');
     console.log('- Icons should be optimized for mobile display');
+<<<<<<< HEAD
+=======
+    if (isFixMode && !sharp) {
+      console.log('\nTo auto-fix sizes run: npm i -D sharp image-size && npm run fix-icons');
+    }
+>>>>>>> df85f11 (main)
   } else {
     console.log('\n✅ All required icons are present!');
   }
@@ -88,12 +177,29 @@ function generateIconChecklist() {
 // Main execution
 if (require.main === module) {
   console.log('🎨 Stem App - Icon Validation Tool\n');
+<<<<<<< HEAD
   
   const iconsValid = validateIcons();
   generateIconChecklist();
   
   if (!iconsValid) {
     process.exit(1);
+=======
+  ensureDepsLoaded();
+  
+  const maybePromise = validateIcons();
+  const finalize = (iconsValid) => {
+    generateIconChecklist();
+    
+    if (!iconsValid) {
+      process.exit(1);
+    }
+  };
+  if (maybePromise && typeof maybePromise.then === 'function') {
+    maybePromise.then(finalize);
+  } else {
+    finalize(maybePromise);
+>>>>>>> df85f11 (main)
   }
 }
 

@@ -11,6 +11,10 @@
     "serve:web": "npx serve dist",
     "deploy:web": "npm run build:web && npm run serve:web",
     "validate-icons": "node scripts/generate-icons.js",
+<<<<<<< HEAD
+=======
+    "fix-icons": "node scripts/generate-icons.js --fix",
+>>>>>>> df85f11 (main)
     "clear-cache": "expo r -c",
     "build:android": "eas build --platform android",
     "build:android-clean": "eas build --platform android --clear-cache"
@@ -60,8 +64,15 @@
     "@types/react-dom": "~18.2.25",
     "@types/react-native": "^0.72.8",
     "babel-plugin-module-resolver": "^5.0.2",
+<<<<<<< HEAD
     "typescript": "~5.8.3",
     "serve": "^14.2.1"
+=======
+    "image-size": "^2.0.2",
+    "serve": "^14.2.1",
+    "sharp": "^0.34.3",
+    "typescript": "~5.8.3"
+>>>>>>> df85f11 (main)
   },
   "private": true
 }

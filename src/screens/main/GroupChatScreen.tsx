@@ -8,9 +8,15 @@ import {
   RefreshControl,
   StatusBar,
   Keyboard,
+<<<<<<< HEAD
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareView } from '../../components/common/KeyboardAwareView';
+=======
+  KeyboardAvoidingView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+>>>>>>> df85f11 (main)
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase/client';
 import { useAuth } from '../../context/AuthContext';
@@ -352,10 +358,17 @@ export default function GroupChatScreen() {
         onSearchPress={handleSearchPress}
       />
 
+<<<<<<< HEAD
       <KeyboardAwareView 
         style={styles.chatContainer}
         enableOnAndroid={true}
         extraPadding={Platform.OS === 'android' ? 10 : 0}
+=======
+      <KeyboardAvoidingView
+        style={styles.chatContainer}
+        behavior={Platform.select({ ios: 'padding', android: 'height' })}
+        keyboardVerticalOffset={0}
+>>>>>>> df85f11 (main)
       >
         <FlatList
           ref={flatListRef}
@@ -394,6 +407,7 @@ export default function GroupChatScreen() {
           usernames={typingUsers}
         />
 
+<<<<<<< HEAD
         <View style={styles.inputContainer}>
           <MessageInput
             onSendMessage={handleSendMessage}
@@ -403,6 +417,19 @@ export default function GroupChatScreen() {
           />
         </View>
       </KeyboardAwareView>
+=======
+        <SafeAreaView edges={['bottom']} style={styles.inputContainerSafeArea}>
+          <View style={styles.inputContainer}>
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              onSendFile={handleSendFile}
+              placeholder="Type a message..."
+              disabled={loading}
+            />
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+>>>>>>> df85f11 (main)
 
       {/* Image Viewer Modal */}
       <ImageViewer
