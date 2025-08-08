@@ -9,4 +9,3 @@ export * from './storage';
 
 // Storage policy utilities
 export { setupStoragePolicies, testStoragePolicies as testSupabaseStoragePolicies, verifyStorageBuckets } from './supabase/setup-storage-policies';
-export { StoragePolicyTester, testStoragePolicies } from '../utils/testStoragePolicies';
