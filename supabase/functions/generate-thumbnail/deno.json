@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "npm:jimp@": "npm:jimp@0.22.12"
+  }
+}

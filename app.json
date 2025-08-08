@@ -1,29 +1,53 @@
 {
   "expo": {
     "name": "Stem",
-    "slug": "Stem",
+    "slug": "stem-ghana-education",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "scheme": "stem",
+    "icon": "./assets/icon.png",
+    "developmentClient": {
+      "silentLaunch": true
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1C1221"
     },
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stem.ghanaEducation"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1C1221"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.stem.ghanaEducation"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "bundler": "metro"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "jsEngine": "hermes",
+    "extra": {
+      "supabaseUrl": "https://vmrwfbkahlsjetgqhoof.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtcndmYmthaGxzamV0Z3Fob29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjA4NTgsImV4cCI6MjA2OTM5Njg1OH0.eQo38v334Xjo-2AhTUT8Av5s36onWKlV-02xwC1IzFg"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them."
+        }
+      ]
+    ]
   }
 }

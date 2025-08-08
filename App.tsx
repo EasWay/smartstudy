@@ -1,30 +1,80 @@
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { AppNavigator } from './src/components/navigation';
+import { AuthProvider, ToastProvider } from './src/context';
+import { NetworkProvider } from './src/context/NetworkContext';
+import { ErrorBoundary } from './src/components/common/ErrorBoundary';
+import { OfflineIndicator } from './src/components/common/OfflineIndicator';
+import { NetworkManager } from './src/utils/networkUtils';
+import { OfflineManager } from './src/utils/offlineManager';
+// import { initializeColorSystem, getEmergencyColor } from './src/utils/colorInitializer'; // Not needed for basic functionality
 
 export default function App() {
+  const [appReady, setAppReady] = useState(false);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        console.log('🚀 Starting app initialization...');
+        
+        // Initialize network and offline managers
+        await NetworkManager.initialize();
+        await OfflineManager.initialize();
+
+        setAppReady(true);
+        console.log('✅ App initialization complete');
+        
+      } catch (error) {
+        console.error('❌ App initialization failed:', error);
+        // Continue anyway - the app can still function
+        setAppReady(true);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  // Show loading screen while initializing
+  if (!appReady) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>
+          Initializing...
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Stem</Text>
-      <Text style={styles.subtitle}>Ghana Education App</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ErrorBoundary>
+      <NetworkProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <OfflineIndicator />
+            <AppNavigator />
+            <StatusBar style="auto" />
+          </ToastProvider>
+        </AuthProvider>
+      </NetworkProvider>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#1C1221',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#FFFFFF',
   },
 });

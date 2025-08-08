@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION eval(query text) RETURNS jsonb AS $$ BEGIN EXECUTE query; RETURN '{}'::jsonb; END; $$ LANGUAGE plpgsql;

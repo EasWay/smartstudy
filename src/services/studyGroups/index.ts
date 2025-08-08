@@ -1,0 +1,1 @@
+export { StudyGroupsService } from './studyGroupsService';
