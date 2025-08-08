@@ -125,18 +125,28 @@ export default function GroupChatScreen() {
 
   // Set up keyboard listeners for auto-scroll
   useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
+    const keyboardShowListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => {
+      (event) => {
         // Auto-scroll to bottom when keyboard shows
+        const delay = Platform.OS === 'ios' ? 100 : 200;
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
-        }, Platform.OS === 'ios' ? 50 : 150);
+        }, delay);
+      }
+    );
+
+    const keyboardHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        // Optional: Maintain scroll position when keyboard hides
+        // You can add logic here if needed
       }
     );
 
     return () => {
-      keyboardWillShowListener.remove();
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
     };
   }, []);
 
@@ -342,7 +352,11 @@ export default function GroupChatScreen() {
         onSearchPress={handleSearchPress}
       />
 
-      <KeyboardAwareView style={styles.chatContainer}>
+      <KeyboardAwareView 
+        style={styles.chatContainer}
+        enableOnAndroid={true}
+        extraPadding={Platform.OS === 'android' ? 10 : 0}
+      >
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -367,11 +381,12 @@ export default function GroupChatScreen() {
           windowSize={10}
           initialNumToRender={20}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           maintainVisibleContentPosition={{
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 10,
           }}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
         />
 
         <TypingIndicator

@@ -1,4 +1,6 @@
+import { Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import { WebNetworkManager } from './webNetworkUtils';
 
 export interface NetworkState {
   isConnected: boolean;
@@ -15,7 +17,24 @@ export class NetworkManager {
   };
 
   static async initialize(): Promise<void> {
-    // Get initial network state
+    if (Platform.OS === 'web') {
+      // Use web-specific network manager
+      await WebNetworkManager.initialize();
+      
+      // Sync initial state
+      const webState = WebNetworkManager.getCurrentState();
+      this.currentState = webState;
+      
+      // Listen to web network changes
+      WebNetworkManager.addListener((webState) => {
+        this.currentState = webState;
+        this.notifyListeners(webState);
+      });
+      
+      return;
+    }
+
+    // Native implementation
     const state = await NetInfo.fetch();
     this.currentState = {
       isConnected: state.isConnected ?? false,
@@ -70,6 +89,10 @@ export class NetworkManager {
 
   static async checkConnectivity(): Promise<boolean> {
     try {
+      if (Platform.OS === 'web') {
+        return await WebNetworkManager.checkConnectivity();
+      }
+      
       const state = await NetInfo.fetch();
       return state.isConnected ?? false;
     } catch (error) {

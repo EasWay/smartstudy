@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Image, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { colors } from '../../constants/colors';
 import LoadingPlaceholder from './LoadingPlaceholder';
 
@@ -49,6 +49,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     setLoading(true);
   }, []);
 
+  const webImageProps = Platform.OS === 'web' ? {
+    loading: 'lazy' as any,
+    decoding: 'async' as any,
+  } : {};
+
   return (
     <View style={[styles.container, style]}>
       <Image
@@ -58,7 +63,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         onError={handleError}
         onLoadStart={handleLoadStart}
         resizeMode={resizeMode}
-        fadeDuration={300}
+        fadeDuration={Platform.OS === 'web' ? 0 : 300}
+        {...webImageProps}
       />
       
       {loading && placeholder && (

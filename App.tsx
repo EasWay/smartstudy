@@ -2,7 +2,7 @@ import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { AppNavigator } from './src/components/navigation';
 import { AuthProvider, ToastProvider } from './src/context';
 import { NetworkProvider } from './src/context/NetworkContext';
@@ -10,10 +10,12 @@ import { ErrorBoundary } from './src/components/common/ErrorBoundary';
 import { OfflineIndicator } from './src/components/common/OfflineIndicator';
 import { NetworkManager } from './src/utils/networkUtils';
 import { OfflineManager } from './src/utils/offlineManager';
+import { useWebOptimizations } from './src/hooks/useWebOptimizations';
 // import { initializeColorSystem, getEmergencyColor } from './src/utils/colorInitializer'; // Not needed for basic functionality
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
+  const { isWebOptimized } = useWebOptimizations();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -23,6 +25,12 @@ export default function App() {
         // Initialize network and offline managers
         await NetworkManager.initialize();
         await OfflineManager.initialize();
+
+        // Wait for web optimizations if on web
+        if (Platform.OS === 'web' && !isWebOptimized) {
+          console.log('⏳ Waiting for web optimizations...');
+          return;
+        }
 
         setAppReady(true);
         console.log('✅ App initialization complete');
@@ -35,7 +43,7 @@ export default function App() {
     };
 
     initializeApp();
-  }, []);
+  }, [isWebOptimized]);
 
   // Show loading screen while initializing
   if (!appReady) {

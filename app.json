@@ -19,10 +19,13 @@
       "assets/**/*"
     ],
     "ios": {
+      "icon": "./assets/icon.png",
       "supportsTablet": true,
-      "bundleIdentifier": "com.stem.ghanaEducation"
+      "bundleIdentifier": "com.stem.ghanaEducation",
+      "buildNumber": "1"
     },
     "android": {
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1C1221"
@@ -30,10 +33,28 @@
       "package": "com.stem.ghanaEducation",
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "versionCode": 1
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "name": "Stem - Ghana Education Platform",
+      "shortName": "Stem",
+      "lang": "en",
+      "scope": "/",
+      "themeColor": "#1C1221",
+      "backgroundColor": "#1C1221",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "preferRelatedApplications": false,
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "black-translucent",
+        "apple-mobile-web-app-title": "Stem",
+        "mobile-web-app-capable": "yes"
+      }
     },
     "updates": {
       "fallbackToCacheTimeout": 0

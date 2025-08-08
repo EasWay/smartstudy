@@ -1,50 +1,83 @@
-import React, { useEffect, useState } from 'react';
-import { View, Keyboard, Platform, ViewStyle } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Keyboard, Platform, ViewStyle, Animated, Dimensions } from 'react-native';
 
 interface KeyboardAwareViewProps {
   children: React.ReactNode;
   style?: ViewStyle;
   extraPadding?: number;
+  enableOnAndroid?: boolean;
+  keyboardVerticalOffset?: number;
 }
 
 export const KeyboardAwareView: React.FC<KeyboardAwareViewProps> = ({
   children,
   style,
   extraPadding = 0,
+  enableOnAndroid = true,
+  keyboardVerticalOffset = 0,
 }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const animatedHeight = useRef(new Animated.Value(0)).current;
+  const screenHeight = Dimensions.get('window').height;
 
   useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (event) => {
-        setKeyboardHeight(event.endCoordinates.height + extraPadding);
-      }
-    );
+    // Use different events for iOS and Android
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        setKeyboardHeight(0);
+    const keyboardShowListener = Keyboard.addListener(showEvent, (event) => {
+      // Skip on Android if disabled
+      if (Platform.OS === 'android' && !enableOnAndroid) return;
+
+      const { height, screenY } = event.endCoordinates;
+      
+      // Calculate actual keyboard height considering screen dimensions
+      let actualKeyboardHeight = height;
+      
+      // On Android, adjust for navigation bar and status bar
+      if (Platform.OS === 'android') {
+        const bottomSpace = screenHeight - screenY;
+        actualKeyboardHeight = Math.max(bottomSpace, height);
       }
-    );
+
+      const finalHeight = actualKeyboardHeight + extraPadding - keyboardVerticalOffset;
+      setKeyboardHeight(finalHeight);
+
+      // Animate the height change
+      Animated.timing(animatedHeight, {
+        toValue: finalHeight,
+        duration: Platform.OS === 'ios' ? 250 : 200,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const keyboardHideListener = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+      
+      // Animate back to 0
+      Animated.timing(animatedHeight, {
+        toValue: 0,
+        duration: Platform.OS === 'ios' ? 250 : 200,
+        useNativeDriver: false,
+      }).start();
+    });
 
     return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
     };
-  }, [extraPadding]);
+  }, [extraPadding, keyboardVerticalOffset, enableOnAndroid, screenHeight, animatedHeight]);
 
   return (
-    <View
+    <Animated.View
       style={[
         style,
         {
-          paddingBottom: keyboardHeight,
+          paddingBottom: Platform.OS === 'ios' ? animatedHeight : keyboardHeight,
         },
       ]}
     >
       {children}
-    </View>
+    </Animated.View>
   );
 };
