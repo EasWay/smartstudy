@@ -3,8 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": "./",
-    "jsx": "react-native",               // ✅ react-native instead of react-jsx
-    "types": ["expo", "react", "react-native", "jest"],  // ✅ Explicitly include these
+    "jsx": "react-native",
+    "types": ["expo", "react", "react-native"],
     "paths": {
       "@/*": ["src/*"]
     },
