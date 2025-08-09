@@ -345,8 +345,7 @@ export default function GroupChatScreen() {
 
       <KeyboardAwareView 
         style={styles.chatContainer}
-        enableOnAndroid={true}
-        extraPadding={Platform.OS === 'android' ? 10 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -385,16 +384,14 @@ export default function GroupChatScreen() {
           usernames={typingUsers}
         />
 
-        <SafeAreaView edges={['bottom']} style={styles.inputContainerSafeArea}>
-          <View style={styles.inputContainer}>
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              onSendFile={handleSendFile}
-              placeholder="Type a message..."
-              disabled={loading}
-            />
-          </View>
-        </SafeAreaView>
+        <View style={styles.inputContainer}>
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            onSendFile={handleSendFile}
+            placeholder="Type a message..."
+            disabled={loading}
+          />
+        </View>
       </KeyboardAwareView>
 
       {/* Image Viewer Modal */}
@@ -421,12 +418,9 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     paddingVertical: 8,
-    paddingBottom: 20,
   },
   inputContainer: {
     backgroundColor: colors.background,
-  },
-  inputContainerSafeArea: {
-    backgroundColor: colors.background,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
   },
 });
