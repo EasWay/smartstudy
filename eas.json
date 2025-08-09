@@ -7,6 +7,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "EAS_NO_FROZEN_LOCKFILE": "1"
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
@@ -14,6 +17,9 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EAS_NO_FROZEN_LOCKFILE": "1"
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
@@ -21,6 +27,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "env": {
+        "EAS_NO_FROZEN_LOCKFILE": "1"
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
