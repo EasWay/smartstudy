@@ -120,7 +120,7 @@ export default function GroupChatScreen() {
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (event) => {
         // Auto-scroll to bottom when keyboard shows
-        const delay = Platform.OS === 'ios' ? 100 : 200;
+        const delay = Platform.OS === 'ios' ? event.duration || 100 : 200;
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, delay);
@@ -345,7 +345,7 @@ export default function GroupChatScreen() {
 
       <KeyboardAwareView 
         style={styles.chatContainer}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -377,6 +377,8 @@ export default function GroupChatScreen() {
             autoscrollToTopThreshold: 10,
           }}
           automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+          automaticallyAdjustContentInsets={false}
+          contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
         />
 
         <TypingIndicator
@@ -418,9 +420,13 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     paddingVertical: 8,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    flexGrow: 1,
   },
   inputContainer: {
     backgroundColor: colors.background,
     paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
 });

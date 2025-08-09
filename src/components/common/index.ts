@@ -16,3 +16,5 @@ export { FeaturedBooksCard } from './FeaturedBooksCard';
 export { LoadingState } from './LoadingState';
 export { ErrorState } from './ErrorState';
 export { OfflineState } from './OfflineState';
+export { KeyboardAwareView } from './KeyboardAwareView';
+export { KeyboardAwareScrollView } from './KeyboardAwareScrollView';

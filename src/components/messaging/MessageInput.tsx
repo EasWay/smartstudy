@@ -159,6 +159,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           multiline
           maxLength={1000}
           editable={!disabled && !isUploading}
+          blurOnSubmit={false}
+          returnKeyType="default"
+          textAlignVertical="top"
+          scrollEnabled={true}
+          keyboardType="default"
+          autoCapitalize="sentences"
+          autoCorrect={true}
+          spellCheck={true}
         />
 
         <TouchableOpacity
@@ -219,7 +227,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     maxHeight: 100,
-    textAlignVertical: 'center',
+    minHeight: 20,
+    textAlignVertical: 'top',
   },
   sendButton: {
     width: 42,
