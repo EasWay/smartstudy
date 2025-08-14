@@ -6,10 +6,8 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
-  ActivityIndicator
 } from 'react-native';
 import { Colors } from '../../constants/colors';
-import { GuardianService } from '../../services/guardian/guardianService';
 import { GuardianArticle } from '../../types/api';
 import {
   DashboardCard,
@@ -18,13 +16,9 @@ import {
   useCustomAlert,
   LoadingPlaceholder
 } from '../../components/common';
-import { ErrorState } from '../../components/common/ErrorState';
-import { OfflineState } from '../../components/common/OfflineState';
 import { useAuth } from '../../context/AuthContext';
-import { useNetwork } from '../../context/NetworkContext';
-import { PersonalizationService, ContentRecommendation } from '../../services/personalization';
+import { useData } from '../../context/DataContext';
 import { userToUserProfile } from '../../utils/userUtils';
-import { ApiErrorHandler } from '../../utils/apiErrorHandler';
 
 // Enhanced article type with personalization data
 interface PersonalizedArticle extends GuardianArticle {
@@ -32,145 +26,23 @@ interface PersonalizedArticle extends GuardianArticle {
 }
 
 export default function HomeScreen() {
-  const [refreshing, setRefreshing] = useState(false);
-  const [listData, setListData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [personalizedContent, setPersonalizedContent] = useState<any>(null);
-  const [isFromCache, setIsFromCache] = useState(false);
-  const [resourceCount, setResourceCount] = useState<number>(0);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
   const { user } = useAuth();
-  const { isOnline } = useNetwork();
+  const { news, resources, studyGroups, loadAllData } = useData();
+  const [refreshing, setRefreshing] = useState(false);
   const { showAlert, AlertComponent } = useCustomAlert();
 
-  const fetchNews = async (useCache: boolean = true) => {
-    if (!user) {
-      setError('Please log in to see personalized content.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setError(null);
-      setIsFromCache(false);
-      
-      if (!useCache) {
-        setLoading(true);
-        const placeholderSections = [
-          { type: 'dashboard' },
-          { type: 'sectionHeader', title: '📰 Latest Educational News' },
-          ...Array(5).fill(0).map((_, i) => ({ type: 'newsPlaceholder', id: `placeholder-${i}` })),
-          { type: 'books' }
-        ];
-        setListData(placeholderSections);
-      }
-
-      // Check if we're offline and should use cached content
-      if (!isOnline && useCache) {
-        console.log('HomeScreen: Offline mode, attempting to load cached content');
-      }
-
-      // Fetch news with enhanced error handling
-      const fetchEducationNews = async () => {
-        const result = await ApiErrorHandler.handleApiCall(
-          () => GuardianService.getEducationalNews({ 'page-size': 6 }, useCache),
-          'guardian_education-tech-news_page-size:6',
-          2,
-          1000
-        );
-        return result;
-      };
-
-      const fetchTechNews = async () => {
-        const result = await ApiErrorHandler.handleApiCall(
-          () => GuardianService.getTechAndAINews(4, useCache),
-          'guardian_tech-ai-news_page-size:4',
-          2,
-          1000
-        );
-        return result;
-      };
-
-      const [educationResult, techResult] = await Promise.all([
-        fetchEducationNews(),
-        fetchTechNews()
-      ]);
-
-      // Check if we got any data
-      const educationNews = educationResult.data || [];
-      const techNews = techResult.data || [];
-      const hasErrors = educationResult.error || techResult.error;
-      const fromCache = educationResult.isFromCache || techResult.isFromCache;
-
-      // Combine articles and remove duplicates
-      const combinedArticles = [...educationNews, ...techNews];
-      const uniqueArticles = combinedArticles
-        .filter((article, index, self) =>
-          index === self.findIndex(a => a.id === article.id)
-        )
-        .slice(0, 8);
-
-      // Generate dashboard content first
-      const dashboardContent = PersonalizationService.getPersonalizedDashboard(user);
-      setPersonalizedContent(dashboardContent);
-
-      const sections: any[] = [{ type: 'dashboard' }];
-
-      if (uniqueArticles.length > 0) {
-        const scoredArticles: PersonalizedArticle[] = uniqueArticles.map(article => ({
-          ...article,
-          personalization: PersonalizationService.scoreNewsArticle(article, user)
-        })).sort((a, b) => (b.personalization?.score || 0) - (a.personalization?.score || 0));
-
-        sections.push({ type: 'sectionHeader', title: '📰 Latest Educational News' });
-        scoredArticles.forEach(article => sections.push({ type: 'news', article }));
-
-        setIsFromCache(fromCache);
-        setLastUpdated(new Date());
-
-        if (fromCache && hasErrors) {
-          const errorMessage = educationResult.error || techResult.error;
-          if (errorMessage) {
-            setError(`${ApiErrorHandler.getUserFriendlyMessage(errorMessage)} Showing cached content.`);
-          }
-        }
-      } else {
-        const primaryError = educationResult.error || techResult.error;
-        if (primaryError) {
-          setError(ApiErrorHandler.getUserFriendlyMessage(primaryError));
-        } else {
-          setError('No news articles available at the moment.');
-        }
-      }
-
-      sections.push({ type: 'books' });
-      setListData(sections);
-
-    } catch (err) {
-      console.error('HomeScreen: Unexpected error fetching personalized news:', err);
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchNews();
-      // Fetch resources count
-      import('../../services/resources/resourceService').then(({ ResourceService }) => {
-        ResourceService.fetchResources()
-          .then(resources => setResourceCount(resources.length))
-          .catch(() => setResourceCount(0));
-      });
-    }
-  }, [user]);
+  // TODO: The personalization and other logic should be re-integrated
+  // For now, we will just display the raw news from the context.
+  const listData = [
+    { type: 'dashboard' },
+    { type: 'sectionHeader', title: '📰 Latest Educational News' },
+    ...news.map(article => ({ type: 'news', article })),
+    { type: 'books' }
+  ];
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchNews(false); // Force fresh data
+    await loadAllData();
     setRefreshing(false);
   };
 
@@ -188,8 +60,8 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <DashboardCard
               user={userToUserProfile(user)}
-              personalizedContent={personalizedContent}
-              resourceCount={resourceCount}
+              personalizedContent={null} // TODO: Re-add personalization
+              resourceCount={resources.length}
             />
           </View>
         );

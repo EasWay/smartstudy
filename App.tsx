@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { AppNavigator } from './src/components/navigation';
-import { AuthProvider, ToastProvider } from './src/context';
+import { AuthProvider, ToastProvider, DataProvider } from './src/context';
 import { NetworkProvider } from './src/context/NetworkContext';
 import { ErrorBoundary } from './src/components/common/ErrorBoundary';
 import { OfflineIndicator } from './src/components/common/OfflineIndicator';
@@ -60,11 +60,13 @@ export default function App() {
     <ErrorBoundary>
       <NetworkProvider>
         <AuthProvider>
-          <ToastProvider>
-            <OfflineIndicator />
-            <AppNavigator />
-            <StatusBar style="auto" />
-          </ToastProvider>
+          <DataProvider>
+            <ToastProvider>
+              <OfflineIndicator />
+              <AppNavigator />
+              <StatusBar style="auto" />
+            </ToastProvider>
+          </DataProvider>
         </AuthProvider>
       </NetworkProvider>
     </ErrorBoundary>

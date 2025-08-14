@@ -10,20 +10,9 @@ import { DatabaseService } from '../../services/supabase/database';
 import TabNavigator from './TabNavigator';
 import AuthNavigator from './AuthNavigator';
 import { ProfileSetupScreen } from '../../screens/auth';
+import InitialLoadingScreen from '../../screens/main/LoadingScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
-
-// Loading component to avoid inline function performance issues
-const LoadingScreen = () => (
-  <View style={{
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background
-  }}>
-    <ActivityIndicator size="large" color={Colors.primary} />
-  </View>
-);
 
 export default function AppNavigator() {
   const { user, loading } = useAuth();
@@ -122,19 +111,19 @@ export default function AppNavigator() {
                 options={{ title: 'Complete Profile' }}
               />
             ) : profileCompleted === true ? (
-              // Authenticated with profile: Show Main App
-              <Stack.Screen
-                name="Main"
-                component={TabNavigator}
-                options={{ title: 'Stem Education App' }}
-              />
-            ) : (
-              // Loading state
-              <Stack.Screen
-                name="Loading"
-                component={LoadingScreen}
-                options={{ title: 'Loading' }}
-              />
+              // Authenticated with profile: Show Data Loading Screen first, then navigate to Main
+              <>
+                <Stack.Screen
+                  name="InitialLoading"
+                  component={InitialLoadingScreen}
+                  options={{ title: 'Loading App Data' }}
+                />
+                <Stack.Screen
+                  name="Main"
+                  component={TabNavigator}
+                  options={{ title: 'Stem Education App' }}
+                />
+              </>
             )}
           </Stack.Navigator>
         </NavigationContainer>

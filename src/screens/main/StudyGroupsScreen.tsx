@@ -1,12 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableOpacity, ScrollView, RefreshControl, StatusBar, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StudyGroup, GroupSearchFilters } from '../../types/studyGroups';
 import { GroupList } from '../../components/studyGroups';
 import { CreateGroupModal } from '../../components/studyGroups/CreateGroupModal';
-import { useStudyGroups } from '../../hooks/useStudyGroups';
+import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { StudyGroupsService } from '../../services/studyGroups/studyGroupsService';
 import { 
   getJoinSuccessMessage, 
   getLeaveSuccessMessage, 
@@ -46,16 +48,31 @@ export default function StudyGroupsScreen() {
   if (searchQuery.trim()) filters.search_query = searchQuery.trim();
   if (selectedSubject) filters.subject = selectedSubject;
 
-  const {
-    userGroups,
-    userGroupIds,
-    refreshing,
-    joinGroup,
-    leaveGroup,
-    refresh
-  } = useStudyGroups(filters);
-
+  const { user } = useAuth();
+  const { studyGroups, loadAllData } = useData();
   const { showSuccess, showError } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const userGroupIds = useMemo(() =>
+    studyGroups.filter(g => g.members.some(m => m.user_id === user?.id)).map(g => g.id),
+    [studyGroups, user?.id]
+  );
+
+  const userGroups = useMemo(() =>
+    studyGroups.filter(g => userGroupIds.includes(g.id)),
+    [studyGroups, userGroupIds]
+  );
+
+  const publicGroups = useMemo(() => {
+    let filtered = studyGroups;
+    if (filters.search_query) {
+      filtered = filtered.filter(g => g.name.toLowerCase().includes(filters.search_query!.toLowerCase()));
+    }
+    if (filters.subject) {
+      filtered = filtered.filter(g => g.subject === filters.subject);
+    }
+    return filtered;
+  }, [studyGroups, filters]);
 
   const handleGroupPress = (group: StudyGroup) => {
     navigation.navigate('GroupChat', { groupId: group.id });
@@ -63,10 +80,10 @@ export default function StudyGroupsScreen() {
 
   const handleJoinGroup = async (groupId: string) => {
     try {
-      const result = await joinGroup(groupId);
-
+      const result = await StudyGroupsService.joinGroup(groupId);
       if (result.success) {
         showSuccess(getJoinSuccessMessage());
+        await loadAllData();
       } else {
         showError(result.error || getJoinErrorMessage());
       }
@@ -78,10 +95,10 @@ export default function StudyGroupsScreen() {
 
   const handleLeaveGroup = async (groupId: string) => {
     try {
-      const result = await leaveGroup(groupId);
-
+      const result = await StudyGroupsService.leaveGroup(groupId);
       if (result.success) {
         showSuccess(getLeaveSuccessMessage());
+        await loadAllData();
       } else {
         showError(result.error || getLeaveErrorMessage());
       }
@@ -91,9 +108,9 @@ export default function StudyGroupsScreen() {
     }
   };
 
-  const handleGroupCreated = () => {
+  const handleGroupCreated = async () => {
     setShowCreateModal(false);
-    // The hook will automatically refresh the data
+    await loadAllData();
   };
 
   const handleTabPress = (tab: 'all' | 'my') => {
@@ -199,7 +216,7 @@ export default function StudyGroupsScreen() {
         {/* All Groups Page */}
         <View style={[styles.pageContainer, { width: screenWidth }]}>
           <GroupList
-            filters={filters}
+            groups={publicGroups}
             onGroupPress={handleGroupPress}
             onJoinGroup={handleJoinGroup}
             showJoinButton={true}
@@ -211,12 +228,11 @@ export default function StudyGroupsScreen() {
         <View style={[styles.pageContainer, { width: screenWidth }]}>
           {userGroups.length > 0 ? (
             <GroupList
-              filters={{}}
+              groups={userGroups}
               onGroupPress={handleGroupPress}
               onJoinGroup={handleLeaveGroup}
               showJoinButton={true}
-              userGroupIds={[]}
-              groups={userGroups}
+              userGroupIds={userGroupIds}
               isMyGroupsView={true}
             />
           ) : (
@@ -225,7 +241,7 @@ export default function StudyGroupsScreen() {
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
-                  onRefresh={refresh}
+                  onRefresh={loadAllData}
                   colors={[colors.primary]}
                   tintColor={colors.primary}
                 />
