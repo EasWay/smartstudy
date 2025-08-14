@@ -2,7 +2,7 @@ import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, Image, ActivityIndicator } from 'react-native';
 import { AppNavigator } from './src/components/navigation';
 import { AuthProvider, ToastProvider, DataProvider } from './src/context';
 import { NetworkProvider } from './src/context/NetworkContext';
@@ -49,6 +49,8 @@ export default function App() {
   if (!appReady) {
     return (
       <View style={styles.loadingContainer}>
+        <Image source={require('./assets/splash-icon.png')} style={styles.logo} />
+        <ActivityIndicator size="large" color="#FFFFFF" />
         <Text style={styles.loadingText}>
           Initializing...
         </Text>
@@ -81,10 +83,17 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#1C1221',
   },
+  logo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    marginBottom: 40,
+  },
   loadingText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
     textAlign: 'center',
     color: '#FFFFFF',
+    marginTop: 20,
   },
 });
