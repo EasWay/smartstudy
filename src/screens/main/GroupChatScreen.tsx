@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, FlatList, Platform, Alert, RefreshControl, StatusBar, Keyboard } from 'react-native';
+import { View, StyleSheet, FlatList, Platform, Alert, RefreshControl, StatusBar, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareView } from '../../components/common/KeyboardAwareView';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase/client';
 import { useAuth } from '../../context/AuthContext';
@@ -46,7 +45,7 @@ export default function GroupChatScreen() {
       if (refresh) setRefreshing(true);
       else setLoading(true);
 
-      const { data, error } = await MessagingService.getGroupMessages(groupId, 50, 0);
+      const { data, error } = await MessagingService.getGroupMessages(groupId, 20, 0);
 
       if (error) {
         showToast(error, 'error');
@@ -59,7 +58,7 @@ export default function GroupChatScreen() {
       );
 
       setMessages(uniqueMessages);
-      setHasMoreMessages(data.length === 50);
+      setHasMoreMessages(data.length === 20);
 
       // Scroll to bottom after loading messages
       setTimeout(() => {
@@ -113,33 +112,6 @@ export default function GroupChatScreen() {
       setLoadingMore(false);
     }
   }, [groupId, messages.length, hasMoreMessages, loadingMore, showToast]);
-
-  // Set up keyboard listeners for auto-scroll
-  useEffect(() => {
-    const keyboardShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (event) => {
-        // Auto-scroll to bottom when keyboard shows
-        const delay = Platform.OS === 'ios' ? event.duration || 100 : 200;
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, delay);
-      }
-    );
-
-    const keyboardHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        // Optional: Maintain scroll position when keyboard hides
-        // You can add logic here if needed
-      }
-    );
-
-    return () => {
-      keyboardShowListener.remove();
-      keyboardHideListener.remove();
-    };
-  }, []);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -343,9 +315,10 @@ export default function GroupChatScreen() {
         onSearchPress={handleSearchPress}
       />
 
-      <KeyboardAwareView 
+      <KeyboardAvoidingView
         style={styles.chatContainer}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -376,7 +349,6 @@ export default function GroupChatScreen() {
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 10,
           }}
-          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
           automaticallyAdjustContentInsets={false}
           contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
         />
@@ -394,7 +366,7 @@ export default function GroupChatScreen() {
             disabled={loading}
           />
         </View>
-      </KeyboardAwareView>
+      </KeyboardAvoidingView>
 
       {/* Image Viewer Modal */}
       <ImageViewer

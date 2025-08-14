@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Alert,
   ActivityIndicator,
   Dimensions,
@@ -14,6 +13,7 @@ import { colors } from '../../constants/colors';
 import { GroupMessage } from '../../types/studyGroups';
 import { ExternalAppService } from '../../services/external/externalAppService';
 import { DownloadService } from '../../services/download/downloadService';
+import OptimizedImage from '../common/OptimizedImage';
 
 interface ResourcePreviewProps {
   message: GroupMessage;
@@ -154,34 +154,13 @@ export const ResourcePreview: React.FC<ResourcePreviewProps> = ({
           onPress={handleFilePress}
           activeOpacity={0.9}
         >
-          {imageLoading && !imageError && (
-            <View style={[styles.imageLoadingContainer, { width: MAX_IMAGE_WIDTH, height: 200 }]}>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          )}
-          
-          {!imageError && (
-            <Image
-              source={{ uri: message.file_url }}
-              style={[
-                styles.previewImage,
-                imageLoading && styles.hiddenImage
-              ]}
-              resizeMode="cover"
-              onLoad={() => setImageLoading(false)}
-              onError={() => {
-                setImageError(true);
-                setImageLoading(false);
-              }}
-            />
-          )}
-
-          {imageError && (
-            <View style={[styles.imageErrorContainer, { width: MAX_IMAGE_WIDTH, height: 200 }]}>
-              <Ionicons name="image-outline" size={48} color={colors.textSecondary} />
-              <Text style={styles.imageErrorText}>Failed to load image</Text>
-            </View>
-          )}
+          <OptimizedImage
+            source={{ uri: message.file_url }}
+            style={styles.previewImage}
+            resizeMode="cover"
+            onLoad={() => setImageLoading(false)}
+            onError={() => setImageError(true)}
+          />
 
           {/* Download button overlay */}
           <TouchableOpacity
@@ -335,15 +314,6 @@ const styles = StyleSheet.create({
   previewImage: {
     width: MAX_IMAGE_WIDTH,
     height: 200,
-    borderRadius: 12,
-  },
-  hiddenImage: {
-    opacity: 0,
-  },
-  imageLoadingContainer: {
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
     borderRadius: 12,
   },
   imageErrorContainer: {
