@@ -15,9 +15,9 @@ import {
   DashboardCard,
   NewsCard,
   FeaturedBooksCard,
-  useCustomAlert
+  useCustomAlert,
+  LoadingPlaceholder
 } from '../../components/common';
-import { LoadingState } from '../../components/common/LoadingState';
 import { ErrorState } from '../../components/common/ErrorState';
 import { OfflineState } from '../../components/common/OfflineState';
 import { useAuth } from '../../context/AuthContext';
@@ -33,7 +33,7 @@ interface PersonalizedArticle extends GuardianArticle {
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [articles, setArticles] = useState<PersonalizedArticle[]>([]);
+  const [listData, setListData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [personalizedContent, setPersonalizedContent] = useState<any>(null);
@@ -58,6 +58,13 @@ export default function HomeScreen() {
       
       if (!useCache) {
         setLoading(true);
+        const placeholderSections = [
+          { type: 'dashboard' },
+          { type: 'sectionHeader', title: '📰 Latest Educational News' },
+          ...Array(5).fill(0).map((_, i) => ({ type: 'newsPlaceholder', id: `placeholder-${i}` })),
+          { type: 'books' }
+        ];
+        setListData(placeholderSections);
       }
 
       // Check if we're offline and should use cached content
@@ -105,26 +112,24 @@ export default function HomeScreen() {
         )
         .slice(0, 8);
 
+      // Generate dashboard content first
+      const dashboardContent = PersonalizationService.getPersonalizedDashboard(user);
+      setPersonalizedContent(dashboardContent);
+
+      const sections: any[] = [{ type: 'dashboard' }];
+
       if (uniqueArticles.length > 0) {
-        // Add lightweight personalization scoring
         const scoredArticles: PersonalizedArticle[] = uniqueArticles.map(article => ({
           ...article,
           personalization: PersonalizationService.scoreNewsArticle(article, user)
-        }));
+        })).sort((a, b) => (b.personalization?.score || 0) - (a.personalization?.score || 0));
 
-        // Sort by personalization score
-        const sortedArticles = scoredArticles
-          .sort((a, b) => (b.personalization?.score || 0) - (a.personalization?.score || 0));
+        sections.push({ type: 'sectionHeader', title: '📰 Latest Educational News' });
+        scoredArticles.forEach(article => sections.push({ type: 'news', article }));
 
-        setArticles(sortedArticles);
         setIsFromCache(fromCache);
         setLastUpdated(new Date());
 
-        // Generate personalized dashboard content
-        const dashboardContent = PersonalizationService.getPersonalizedDashboard(user);
-        setPersonalizedContent(dashboardContent);
-
-        // Show warning if data is from cache due to errors
         if (fromCache && hasErrors) {
           const errorMessage = educationResult.error || techResult.error;
           if (errorMessage) {
@@ -132,7 +137,6 @@ export default function HomeScreen() {
           }
         }
       } else {
-        // No data available
         const primaryError = educationResult.error || techResult.error;
         if (primaryError) {
           setError(ApiErrorHandler.getUserFriendlyMessage(primaryError));
@@ -140,6 +144,9 @@ export default function HomeScreen() {
           setError('No news articles available at the moment.');
         }
       }
+
+      sections.push({ type: 'books' });
+      setListData(sections);
 
     } catch (err) {
       console.error('HomeScreen: Unexpected error fetching personalized news:', err);
@@ -172,108 +179,44 @@ export default function HomeScreen() {
     console.log('Article pressed:', article.webTitle);
   };
 
-  const renderStudentDashboard = () => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     if (!user) return null;
-    return (
-      <View style={styles.section}>
-        <DashboardCard
-          user={userToUserProfile(user)}
-          personalizedContent={personalizedContent}
-          resourceCount={resourceCount}
-        />
-      </View>
-    );
-  };
 
-  const renderNewsPost = (article: PersonalizedArticle, index: number) => (
-    <NewsCard
-      key={`${article.id}-${index}`}
-      article={article}
-      onPress={handleArticlePress}
-    />
-  );
-
-  const renderNewsSection = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>📰 Latest Educational News</Text>
-        {isFromCache && (
-          <View style={styles.cacheIndicator}>
-            <Text style={styles.cacheText}>Cached</Text>
-          </View>
-        )}
-      </View>
-      
-      {/* Show offline indicator if offline */}
-      {!isOnline && (
-        <OfflineState
-          message="You're offline. Showing cached news content."
-          onRetry={() => fetchNews(false)}
-          style={styles.offlineIndicator}
-        />
-      )}
-      
-      {loading && articles.length === 0 ? (
-        <LoadingState 
-          message="Loading latest news..." 
-          style={styles.loadingContainer}
-        />
-      ) : error && articles.length === 0 ? (
-        <ErrorState
-          title="Unable to load news"
-          message={error}
-          onRetry={() => fetchNews(false)}
-          style={styles.errorContainer}
-          icon="📰"
-        />
-      ) : articles.length === 0 ? (
-        <ErrorState
-          title="No news available"
-          message="No news articles found. Please try again later."
-          onRetry={() => fetchNews(false)}
-          style={styles.errorContainer}
-          icon="📰"
-        />
-      ) : (
-        <>
-          {error && (
-            <View style={styles.warningBanner}>
-              <Text style={styles.warningText}>⚠️ {error}</Text>
-            </View>
-          )}
-          {articles.map((article, index) => renderNewsPost(article, index))}
-        </>
-      )}
-    </View>
-  );
-
-  const renderFeaturedBooksSection = () => {
-    if (!user) return null;
-    return (
-      <View style={styles.section}>
-        <FeaturedBooksCard
-          user={userToUserProfile(user)}
-          limit={6}
-          horizontal={false}
-        />
-      </View>
-    );
-  };
-
-  const renderItem = ({ item, index }: { item: string; index: number }) => {
-    switch (item) {
+    switch (item.type) {
       case 'dashboard':
-        return renderStudentDashboard();
+        return (
+          <View style={styles.section}>
+            <DashboardCard
+              user={userToUserProfile(user)}
+              personalizedContent={personalizedContent}
+              resourceCount={resourceCount}
+            />
+          </View>
+        );
+      case 'sectionHeader':
+        return (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{item.title}</Text>
+          </View>
+        );
       case 'news':
-        return renderNewsSection();
+        return <NewsCard article={item.article} onPress={handleArticlePress} />;
+      case 'newsPlaceholder':
+        return <LoadingPlaceholder type="news" style={{ marginBottom: 16 }} />;
       case 'books':
-        return renderFeaturedBooksSection();
+        return (
+          <View style={styles.section}>
+            <FeaturedBooksCard
+              user={userToUserProfile(user)}
+              limit={6}
+              horizontal={false}
+            />
+          </View>
+        );
       default:
         return null;
     }
   };
-
-  const sections = ['dashboard', 'news', 'books'];
 
   if (!user) {
     return (
@@ -289,9 +232,9 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <FlatList
-        data={sections}
+        data={listData}
         renderItem={renderItem}
-        keyExtractor={(item) => item}
+        keyExtractor={(item, index) => `${item.type}-${item.article?.id || index}`}
         contentContainerStyle={styles.contentContainer}
         refreshControl={
           <RefreshControl
