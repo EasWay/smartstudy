@@ -14,62 +14,46 @@ import InitialLoadingScreen from '../../screens/main/LoadingScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+const LoadingIndicator = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }}>
+    <ActivityIndicator size="large" color={Colors.primary} />
+  </View>
+);
+
 export default function AppNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
-  const [checkingProfile, setCheckingProfile] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   const isAuthenticated = !!user;
 
-  console.log('AppNavigator - User:', user?.username || user?.fullName || 'Anonymous', 'Loading:', loading, 'Authenticated:', isAuthenticated);
-  console.log('AppNavigator - Profile completed:', profileCompleted, 'Checking profile:', checkingProfile);
-
-  // Check if user has completed profile setup
   useEffect(() => {
     async function checkProfileCompletion() {
-      if (user && !loading) {
-        console.log('Checking profile completion for user:', user.id);
+      if (user) {
         setCheckingProfile(true);
         try {
           const completed = await DatabaseService.hasCompletedProfile(user.id);
-          console.log('Profile completion check result:', completed);
           setProfileCompleted(completed);
         } catch (error) {
           console.error('Error checking profile completion:', error);
-          setProfileCompleted(false);
+          setProfileCompleted(false); // Default to false on error
         } finally {
           setCheckingProfile(false);
         }
       } else {
+        // If there's no user, reset profile state
         setProfileCompleted(null);
+        setCheckingProfile(false);
       }
     }
 
-    checkProfileCompletion();
+    if (!authLoading) {
+      checkProfileCompletion();
+    }
+  }, [user, authLoading]);
 
-    // Set up an interval to periodically check profile completion
-    const interval = setInterval(() => {
-      if (user && !loading && profileCompleted === false) {
-        console.log('Rechecking profile completion...');
-        checkProfileCompletion();
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [user, loading, profileCompleted]);
-
-  // Show loading screen while checking auth state or profile completion
-  if (loading || (isAuthenticated && checkingProfile && profileCompleted === null)) {
-    return (
-      <View style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.background
-      }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
+  if (authLoading || (!isAuthenticated && checkingProfile)) {
+    return <LoadingIndicator />;
   }
 
   return (
@@ -124,6 +108,13 @@ export default function AppNavigator() {
                   options={{ title: 'Stem Education App' }}
                 />
               </>
+            ) : (
+              // Fallback loading screen while profile check is happening
+              <Stack.Screen
+                name="AuthLoading"
+                component={LoadingIndicator}
+                options={{ title: 'Loading' }}
+              />
             )}
           </Stack.Navigator>
         </NavigationContainer>
