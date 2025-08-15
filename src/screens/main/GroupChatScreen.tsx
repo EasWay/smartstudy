@@ -57,7 +57,7 @@ export default function GroupChatScreen() {
         index === self.findIndex(m => m.id === message.id)
       );
 
-      setMessages(uniqueMessages);
+      setMessages(uniqueMessages.reverse());
       setHasMoreMessages(data.length === 20);
 
       // Scroll to bottom after loading messages
@@ -97,7 +97,7 @@ export default function GroupChatScreen() {
       }
 
       setMessages(prev => {
-        const combined = [...data, ...prev];
+        const combined = [...prev, ...data];
         // Remove duplicates
         const uniqueMessages = combined.filter((message, index, self) =>
           index === self.findIndex(m => m.id === message.id)
@@ -153,8 +153,8 @@ export default function GroupChatScreen() {
                 return prev;
               }
 
-              // Add new message and ensure unique IDs
-              const newMessages = [...prev, newMessageData as GroupMessage];
+              // Add new message to the start of the array for inverted list
+              const newMessages = [newMessageData as GroupMessage, ...prev];
 
               // Remove any potential duplicates (extra safety)
               const uniqueMessages = newMessages.filter((message, index, self) =>
@@ -317,12 +317,13 @@ export default function GroupChatScreen() {
 
       <KeyboardAvoidingView
         style={styles.chatContainer}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
       >
         <FlatList
           ref={flatListRef}
           data={messages}
+          inverted
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={renderMessage}
           style={styles.messagesList}
